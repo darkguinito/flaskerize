@@ -9,12 +9,14 @@ from .render import SchematicRenderer
 
 @fixture
 def renderer(tmp_path):
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
+    schematic_path       = path.join(tmp_path, "schematics/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
-    src_path = str(tmp_path)
-    output_prefix = "render/test/results/"
+    src_path             = str(tmp_path)
+    output_prefix        = "render/test/results/"
+
     os.makedirs(schematic_path)
     os.makedirs(schematic_files_path)
+
     yield SchematicRenderer(
         schematic_path=schematic_path,
         src_path=src_path,
@@ -25,10 +27,11 @@ def renderer(tmp_path):
 
 @fixture
 def renderer_no_dry_run(tmp_path):
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
+    schematic_path       = path.join(tmp_path, "schematics/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
-    src_path = str(tmp_path)
-    output_prefix = "render/test/results/"
+    src_path             = str(tmp_path)
+    output_prefix        = "render/test/results/"
+
     os.makedirs(schematic_path)
     os.makedirs(schematic_files_path)
     yield SchematicRenderer(
@@ -97,10 +100,13 @@ def test_get_template_files(tmp_path):
     }
 
     """
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
+    schematic_path       = path.join(tmp_path, "schematics/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
+
     os.makedirs(schematic_files_path)
+
     schema_path = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(CONTENTS)
     renderer = SchematicRenderer(
@@ -126,10 +132,13 @@ def test_ignoreFilePatterns_is_respected(tmp_path):
     }
 
     """
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
+    schematic_path       = path.join(tmp_path, "schematics/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
+
     os.makedirs(schematic_files_path)
+
     schema_path = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(CONTENTS)
     renderer = SchematicRenderer(
@@ -183,8 +192,8 @@ class TestColorizingPrint:
 @patch("flaskerize.render.colored")
 def test_render_colored(colored, renderer):
     renderer.get_template_files = lambda: ["file1"]
-    mock = MagicMock()
-    renderer.render_from_file = mock
+    mock                        = MagicMock()
+    renderer.render_from_file   = mock
 
     renderer.render(name="test_resource", args=[])
 
@@ -208,16 +217,21 @@ def test_render_from_file_creates_directories(renderer, tmp_path):
 
 
 def test_copy_static_file_no_dry_run(renderer_no_dry_run, tmp_path):
-    renderer = renderer_no_dry_run
-    rel_filename = "doodad/my_file.txt"
+    CONTENTS        = "some static content"
+    renderer        = renderer_no_dry_run
+    rel_filename    = "doodad/my_file.txt"
     filename_in_sch = os.path.join(renderer.schematic_files_path, rel_filename)
     filename_in_src = os.path.join(
-        renderer.src_path, renderer.output_prefix, rel_filename
+        renderer.src_path,
+        renderer.output_prefix,
+        rel_filename,
     )
-    CONTENTS = "some static content"
+
     os.makedirs(os.path.dirname(filename_in_sch))
+
     with open(filename_in_sch, "w") as fid:
         fid.write(CONTENTS)
+
     renderer._generate_outfile = MagicMock(return_value=rel_filename)
     renderer.copy_static_file(rel_filename, context={})
     assert len(renderer.fs.get_created_files()) > 0
@@ -227,15 +241,18 @@ def test_copy_static_file_no_dry_run(renderer_no_dry_run, tmp_path):
 
 
 def test_copy_static_file_dry_run_true(renderer, tmp_path):
-    rel_filename = "doodad/my_file.txt"
+    CONTENTS        = "some static content"
+    rel_filename    = "doodad/my_file.txt"
     filename_in_sch = os.path.join(renderer.schematic_files_path, rel_filename)
     filename_in_src = os.path.join(
         renderer.src_path, renderer.output_prefix, rel_filename
     )
-    CONTENTS = "some static content"
+
     os.makedirs(os.path.dirname(filename_in_sch))
+
     with open(filename_in_sch, "w") as fid:
         fid.write(CONTENTS)
+
     renderer._generate_outfile = MagicMock(return_value=rel_filename)
     renderer.copy_static_file(rel_filename, context={})
     renderer.fs.commit()  # TODO: create a context manager to handle committing on success
@@ -245,52 +262,66 @@ def test_copy_static_file_dry_run_true(renderer, tmp_path):
 
 
 def test_copy_static_file_does_not_modify_if_exists_and_contents_unchanged(tmp_path):
-    rel_filename = "my_file.txt"
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
+    rel_filename         = "my_file.txt"
+    schematic_path       = path.join(tmp_path, "schematics/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
-    src_path = path.join(tmp_path, "out/path/")
+    src_path             = path.join(tmp_path, "out/path/")
+
     os.makedirs(schematic_path)
     os.makedirs(schematic_files_path)
     os.makedirs(src_path)
 
     filename_in_sch = os.path.join(schematic_files_path, rel_filename)
-    CONTENTS = "some static content"
+    CONTENTS        = "some static content"
+
     with open(filename_in_sch, "w") as fid:
         fid.write(CONTENTS)
+
     filename_in_src = os.path.join(src_path, rel_filename)
+
     with open(filename_in_src, "w") as fid:
         fid.write(CONTENTS)
-    renderer = SchematicRenderer(schematic_path=schematic_path, src_path=src_path)
+
+    renderer                   = SchematicRenderer(schematic_path=schematic_path, src_path=src_path)
     renderer._generate_outfile = MagicMock(return_value=rel_filename)
     renderer.copy_static_file(rel_filename, context={})
-    assert len(renderer.fs.get_created_files()) == 0
-    assert len(renderer.fs.get_modified_files()) == 0
+
+    assert len(renderer.fs.get_created_files())   == 0
+    assert len(renderer.fs.get_modified_files())  == 0
     assert len(renderer.fs.get_unchanged_files()) == 1
     renderer.fs.commit()
     assert os.path.exists(filename_in_src)
 
 
 def test_copy_static_file_modifies_file_if_exists_and_contents_changes(tmp_path):
-    rel_filename = "my_file.txt"
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
+    rel_filename         = "my_file.txt"
+    schematic_path       = path.join(tmp_path, "schematics/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
-    src_path = path.join(tmp_path, "out/path/")
+    src_path             = path.join(tmp_path, "out/path/")
+
     os.makedirs(schematic_path)
     os.makedirs(schematic_files_path)
     os.makedirs(src_path)
 
     filename_in_sch = os.path.join(schematic_files_path, rel_filename)
-    CONTENTS = "some static content"
+    CONTENTS        = "some static content"
+
     with open(filename_in_sch, "w") as fid:
         fid.write(CONTENTS)
+
     filename_in_src = os.path.join(src_path, rel_filename)
+
     with open(filename_in_src, "w") as fid:
         fid.write(CONTENTS + "...")
-    renderer = SchematicRenderer(schematic_path=schematic_path, src_path=src_path)
+
+    renderer                   = SchematicRenderer(schematic_path=schematic_path, src_path=src_path)
     renderer._generate_outfile = MagicMock(return_value=rel_filename)
+
     renderer.copy_static_file(rel_filename, context={})
-    assert len(renderer.fs.get_created_files()) == 0
+
+    assert len(renderer.fs.get_created_files())  == 0
     assert len(renderer.fs.get_modified_files()) == 1
+
     renderer.fs.commit()
     assert os.path.exists(filename_in_src)
 
@@ -300,6 +331,7 @@ def test_run_with_static_files(renderer, tmp_path):
 
     filename = os.path.join(renderer.schematic_files_path, "my_file.txt")
     CONTENTS = "some existing content"
+
     with open(filename, "w") as fid:
         fid.write(CONTENTS)
 
@@ -324,22 +356,29 @@ def test__load_run_function_raises_if_colliding_parameter_provided(tmp_path):
     """
 
     os.makedirs(path.join(tmp_path, "schematics/doodad/files"))
+
     schematic_path = path.join(tmp_path, "schematics/doodad")
-    schema_path = path.join(schematic_path, "schema.json")
+    schema_path    = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(CONTENTS)
+
     renderer = SchematicRenderer(
-        schematic_path=schematic_path, src_path="./", dry_run=True
+        schematic_path=schematic_path,
+        src_path="./",
+        dry_run=True,
     )
     with raises(ValueError):
         renderer.render(name="test_resource", args=["test_name"])
 
 
 def test__load_run_function_raises_if_invalid_run_py(tmp_path):
-    SCHEMA_CONTENTS = """{"options": []}"""
     os.makedirs(path.join(tmp_path, "schematics/doodad/files/"))
-    schematic_path = path.join(tmp_path, "schematics/doodad")
-    schema_path = path.join(schematic_path, "schema.json")
+
+    SCHEMA_CONTENTS = """{"options": []}"""
+    schematic_path  = path.join(tmp_path, "schematics/doodad")
+    schema_path     = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
 
@@ -356,17 +395,21 @@ def wrong_named_run(renderer: SchematicRenderer, context: Dict[str, Any]) -> Non
         fid.write(RUN_CONTENTS)
 
     renderer = SchematicRenderer(
-        schematic_path=schematic_path, src_path="./", dry_run=True
+        schematic_path=schematic_path,
+        src_path="./",
+        dry_run=True
     )
     with raises(ValueError):
         renderer._load_run_function(path=path.join(renderer.schematic_path, "run.py"))
 
 
 def test__load_run_function_uses_custom_run(tmp_path):
-    SCHEMA_CONTENTS = """{"options": []}"""
     os.makedirs(path.join(tmp_path, "schematics/doodad/files/"))
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
-    schema_path = path.join(schematic_path, "schema.json")
+
+    SCHEMA_CONTENTS = """{"options": []}"""
+    schematic_path  = path.join(tmp_path, "schematics/doodad/")
+    schema_path     = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
 
@@ -379,24 +422,28 @@ def run(renderer: SchematicRenderer, context: Dict[str, Any]) -> None:
     return "result from the custom run function"
 """
     run_path = path.join(schematic_path, "run.py")
+
     with open(run_path, "w") as fid:
         fid.write(RUN_CONTENTS)
 
     renderer = SchematicRenderer(
-        schematic_path=schematic_path, src_path="./", dry_run=True
+        schematic_path=schematic_path,
+        src_path="./",
+        dry_run=True,
     )
-    run = renderer._load_run_function(path=path.join(renderer.schematic_path, "run.py"))
-
+    run    = renderer._load_run_function(path=path.join(renderer.schematic_path, "run.py"))
     result = run(renderer=renderer, context={})
 
     assert result == "result from the custom run function"
 
 
 def test__load_run_function_uses_custom_run_with_context_correctly(tmp_path):
-    SCHEMA_CONTENTS = """{"options": []}"""
     os.makedirs(path.join(tmp_path, "schematics/doodad/files/"))
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
-    schema_path = path.join(schematic_path, "schema.json")
+
+    SCHEMA_CONTENTS = """{"options": []}"""
+    schematic_path  = path.join(tmp_path, "schematics/doodad/")
+    schema_path     = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
 
@@ -413,10 +460,12 @@ def run(renderer: SchematicRenderer, context: Dict[str, Any]) -> None:
         fid.write(RUN_CONTENTS)
 
     renderer = SchematicRenderer(
-        schematic_path=schematic_path, src_path="./", dry_run=True
+        schematic_path=schematic_path,
+        src_path="./",
+        dry_run=True,
     )
-    run = renderer._load_run_function(path=path.join(renderer.schematic_path, "run.py"))
 
+    run    = renderer._load_run_function(path=path.join(renderer.schematic_path, "run.py"))
     result = run(renderer=renderer, context={"value": "secret password"})
 
     assert result == "secret password"
@@ -424,23 +473,27 @@ def run(renderer: SchematicRenderer, context: Dict[str, Any]) -> None:
 
 @patch("flaskerize.render.default_run")
 def test_default_run_executed_if_no_custom_run(mock: MagicMock, tmp_path):
-    SCHEMA_CONTENTS = """{"options": []}"""
     os.makedirs(path.join(tmp_path, "schematics/doodad/files/"))
-    schematic_path = path.join(tmp_path, "schematics/doodad/")
-    schema_path = path.join(schematic_path, "schema.json")
+
+    SCHEMA_CONTENTS = """{"options": []}"""
+    schematic_path  = path.join(tmp_path, "schematics/doodad/")
+    schema_path     = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
+
     renderer = SchematicRenderer(
-        schematic_path=schematic_path, src_path="./", dry_run=True
+        schematic_path=schematic_path,
+        src_path="./",
+        dry_run=True,
     )
 
     renderer.render(name="test_resource", args=[])
-
     mock.assert_called_once()
 
 
 def test_render(tmp_path: str):
-    schematic_path = path.join(tmp_path, "schematic/doodad/")
+    schematic_path       = path.join(tmp_path, "schematic/doodad/")
     schematic_files_path = path.join(schematic_path, "files")
     os.makedirs(schematic_files_path)
     SCHEMA_CONTENTS = """
@@ -457,11 +510,13 @@ def test_render(tmp_path: str):
 
     """
     schema_path = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
 
     TEMPLATE_CONTENT = "Hello {{ some_option }}!"
-    template_path = path.join(schematic_files_path, "output.txt.template")
+    template_path    = path.join(schematic_files_path, "output.txt.template")
+
     with open(template_path, "w") as fid:
         fid.write(TEMPLATE_CONTENT)
 
@@ -474,15 +529,18 @@ def test_render(tmp_path: str):
 
     outfile = path.join(tmp_path, "results/output.txt")
     assert path.exists(outfile)
+
     with open(outfile, "r") as fid:
         contents = fid.read()
+
     assert contents == "Hello there!"
 
 
 def test_render_with_custom_function(tmp_path: str):
 
-    schematic_path = path.join(tmp_path, "schematic/doodad/")
+    schematic_path       = path.join(tmp_path, "schematic/doodad/")
     schematic_files_path = path.join(schematic_path, "files/")
+
     os.makedirs(schematic_files_path)
     SCHEMA_CONTENTS = """
     {
@@ -498,6 +556,7 @@ def test_render_with_custom_function(tmp_path: str):
 
     """
     schema_path = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
 
@@ -520,11 +579,13 @@ def derp_case(val: str) -> str:
 
     """
     custom_functions_path = path.join(schematic_path, "custom_functions.py")
+
     with open(custom_functions_path, "w") as fid:
         fid.write(CUSTOM_FUNCTIONS_CONTENTS)
 
     TEMPLATE_CONTENT = "Hello {{ derp_case(some_option) }}!"
-    template_path = path.join(schematic_files_path, "output.txt.template")
+    template_path    = path.join(schematic_files_path, "output.txt.template")
+
     with open(template_path, "w") as fid:
         fid.write(TEMPLATE_CONTENT)
 
@@ -536,16 +597,20 @@ def derp_case(val: str) -> str:
     renderer.render(name="Test schematic", args=["there"])
 
     outfile = path.join(tmp_path, "results/output.txt")
+
     assert path.exists(outfile)
+
     with open(outfile, "r") as fid:
         contents = fid.read()
+
     assert contents == "Hello tHeRe!"
 
 
 def test_render_with_custom_function_parameterized(tmp_path: str):
 
-    schematic_path = path.join(tmp_path, "schematic/doodad")
+    schematic_path       = path.join(tmp_path, "schematic/doodad")
     schematic_files_path = path.join(schematic_path, "files")
+
     os.makedirs(schematic_files_path)
     SCHEMA_CONTENTS = """
     {
@@ -561,6 +626,7 @@ def test_render_with_custom_function_parameterized(tmp_path: str):
 
     """
     schema_path = path.join(schematic_path, "schema.json")
+
     with open(schema_path, "w") as fid:
         fid.write(SCHEMA_CONTENTS)
 
@@ -573,11 +639,13 @@ def truncate(val: str, max_length: int) -> str:
 
     """
     custom_functions_path = path.join(schematic_path, "custom_functions.py")
+
     with open(custom_functions_path, "w") as fid:
         fid.write(CUSTOM_FUNCTIONS_CONTENTS)
 
     TEMPLATE_CONTENT = "Hello {{ truncate(some_option, 2) }}!"
-    template_path = path.join(schematic_files_path, "output.txt.template")
+    template_path    = path.join(schematic_files_path, "output.txt.template")
+
     with open(template_path, "w") as fid:
         fid.write(TEMPLATE_CONTENT)
 
@@ -586,12 +654,16 @@ def truncate(val: str, max_length: int) -> str:
         src_path=path.join(tmp_path, "results/"),
         dry_run=False,
     )
+
     renderer.render(name="Test schematic", args=["there"])
 
     outfile = path.join(tmp_path, "results/output.txt")
+
     assert path.exists(outfile)
+
     with open(outfile, "r") as fid:
         contents = fid.read()
+
     assert contents == "Hello th!"
 
 
